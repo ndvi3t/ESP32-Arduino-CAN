@@ -66,7 +66,7 @@ static void CAN_isr(void *arg_p) {
 
 	// Handle TX complete interrupt
 	// Handle error interrupts.
-	if ((interrupt & (__CAN_IRQ_TX | __CAN_IRQ_ERR //0x4
+	if (sem_tx_complete != NULL && (interrupt & (__CAN_IRQ_TX | __CAN_IRQ_ERR //0x4
 	                  | __CAN_IRQ_DATA_OVERRUN     // 0x8
 	                  | __CAN_IRQ_WAKEUP           // 0x10
 	                  | __CAN_IRQ_ERR_PASSIVE      // 0x20
@@ -270,8 +270,8 @@ int CAN_write_frame(const CAN_frame_t *p_frame) {
 	// Write the frame to the controller
 	CAN_write_frame_phy(p_frame);
 
-	// wait for the frame tx to complete
-	xSemaphoreTake(sem_tx_complete, portMAX_DELAY);
+	// wait for the frame tx to complete (with given timeout)
+	xSemaphoreTake(sem_tx_complete, 10 * portTICK_PERIOD_MS);
 
 	return 0;
 }
