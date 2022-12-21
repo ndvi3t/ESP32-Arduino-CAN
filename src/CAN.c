@@ -73,6 +73,18 @@ static void CAN_isr(void *arg_p) {
 	                  | __CAN_IRQ_ARB_LOST         // 0x40
 	                  | __CAN_IRQ_BUS_ERR          // 0x80
 	                  )) != 0) {
+		if (((interrupt & __CAN_IRQ_ERR) != 0) && (MODULE_CAN->TXERR.U > 127)) {
+			// Abort transmission
+			MODULE_CAN->CMR.B.AT = 1;
+			// Enter reset mode
+			MODULE_CAN->MOD.B.RM = 1;
+			// Trigger bus-off recovery
+			MODULE_CAN->TXERR.U = 255; 
+			MODULE_CAN->RXERR.U = 0; 
+			// Release reset mode
+			MODULE_CAN->MOD.B.RM = 0;
+		}
+
 		xSemaphoreGiveFromISR(sem_tx_complete, &higherPriorityTaskWoken);
 	}
 
