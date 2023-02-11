@@ -289,9 +289,15 @@ int CAN_write_frame(const CAN_frame_t *p_frame) {
 }
 
 int CAN_stop() {
-	// enter reset mode
+	// Abort transmission
+	MODULE_CAN->CMR.B.AT = 1;
+	// Enter reset mode
 	MODULE_CAN->MOD.B.RM = 1;
-
+	// Trigger bus-off recovery
+	MODULE_CAN->TXERR.U = 255; 
+	MODULE_CAN->RXERR.U = 0; 
+	// Release reset mode
+	MODULE_CAN->MOD.B.RM = 0;
 	return 0;
 }
 
